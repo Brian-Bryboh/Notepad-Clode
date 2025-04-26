@@ -1,0 +1,115 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+public class Notepad extends JFrame {
+
+    JTextArea textArea;
+    JMenuBar menuBar;
+    JMenu fileMenu, editMenu;
+    JMenuItem newItem, openItem, saveItem, exitItem;
+    JMenuItem cutItem, copyItem, pasteItem, findItem;
+    JFileChooser fileChooser;
+    
+    public Notepad() {
+        setTitle("Notepad");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        textArea = new JTextArea();
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        add(scrollPane, BorderLayout.CENTER);
+
+        menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+
+        // File Menu
+        fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);
+
+        newItem = new JMenuItem("New");
+        openItem = new JMenuItem("Open");
+        saveItem = new JMenuItem("Save");
+        exitItem = new JMenuItem("Exit");
+
+        fileMenu.add(newItem);
+        fileMenu.add(openItem);
+        fileMenu.add(saveItem);
+        fileMenu.add(exitItem);
+
+        // Edit Menu
+        editMenu = new JMenu("Edit");
+        menuBar.add(editMenu);
+
+        cutItem = new JMenuItem("Cut");
+        copyItem = new JMenuItem("Copy");
+        pasteItem = new JMenuItem("Paste");
+        findItem = new JMenuItem("Find");
+
+        editMenu.add(cutItem);
+        editMenu.add(copyItem);
+        editMenu.add(pasteItem);
+        editMenu.add(findItem);
+
+        // File menu actions
+        fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt"));
+
+        newItem.addActionListener(e -> textArea.setText(""));
+        openItem.addActionListener(e -> openFile());
+        saveItem.addActionListener(e -> saveFile());
+        exitItem.addActionListener(e -> System.exit(0));
+
+        // Edit menu actions
+        cutItem.addActionListener(e -> textArea.cut());
+        copyItem.addActionListener(e -> textArea.copy());
+        pasteItem.addActionListener(e -> textArea.paste());
+        findItem.addActionListener(e -> findText());
+    }
+
+    private void openFile() {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                textArea.setText("");
+                String line;
+                while ((line = br.readLine()) != null) {
+                    textArea.append(line + "\n");
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void saveFile() {
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(textArea.getText());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void findText() {
+        String searchText = JOptionPane.showInputDialog(this, "Enter text to find:");
+        if (searchText != null && !searchText.isEmpty()) {
+            String content = textArea.getText();
+            int index = content.indexOf(searchText);
+            if (index != -1) {
+                textArea.setCaretPosition(index);
+                textArea.select(index, index + searchText.length());
+            } else {
+                JOptionPane.showMessageDialog(this, "Text not found");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Notepad().setVisible(true));
+    }
+}
